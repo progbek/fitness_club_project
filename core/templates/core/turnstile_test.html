@@ -1,0 +1,119 @@
+{% extends "core/base.html" %}
+
+{% block title %}Тест турникета{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Тестирование турникета</h5>
+            </div>
+            <div class="card-body">
+                <form id="turnstile-test-form">
+                    <div class="mb-3">
+                        <label for="face_id" class="form-label">Face ID</label>
+                        <select class="form-select" id="face_id" required>
+                            <option value="">Выберите клиента</option>
+                            {% for client in clients %}
+                            <option value="{{ client.face_id }}">
+                                {{ client.last_name }} {{ client.first_name }} ({{ client.face_id }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="device_id" class="form-label">ID устройства</label>
+                        <input type="text" class="form-control" id="device_id" value="turnstile_1">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Отправить на турникет</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Результат</h5>
+            </div>
+            <div class="card-body">
+                <div id="result" class="d-none">
+                    <div id="result-icon" class="text-center mb-3" style="font-size: 4rem;"></div>
+                    <div id="result-message" class="text-center h4"></div>
+                    <div id="result-details" class="mt-3"></div>
+                </div>
+                <div id="waiting" class="text-center text-muted">
+                    <i class="bi bi-hourglass-split" style="font-size: 3rem;"></i>
+                    <p class="mt-2">Ожидание данных...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('turnstile-test-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const faceId = document.getElementById('face_id').value;
+    const deviceId = document.getElementById('device_id').value;
+    
+    const resultDiv = document.getElementById('result');
+    const waitingDiv = document.getElementById('waiting');
+    const resultIcon = document.getElementById('result-icon');
+    const resultMessage = document.getElementById('result-message');
+    const resultDetails = document.getElementById('result-details');
+    
+    waitingDiv.classList.remove('d-none');
+    resultDiv.classList.add('d-none');
+    
+    try {
+        const response = await fetch('/api/turnstile/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                face_id: faceId,
+                device_id: deviceId
+            })
+        });
+        
+        const data = await response.json();
+        
+        waitingDiv.classList.add('d-none');
+        resultDiv.classList.remove('d-none');
+        
+        if (data.success && data.access_granted) {
+            resultIcon.innerHTML = '<i class="bi bi-check-circle text-success"></i>';
+            resultMessage.textContent = 'Доступ разрешен';
+            resultDetails.innerHTML = `
+                <p><strong>Клиент:</strong> ${data.client.first_name} ${data.client.last_name}</p>
+                <p><strong>Осталось посещений:</strong> ${data.subscription.remaining_visits}</p>
+                <p><strong>Статус:</strong> ${data.was_deducted ?
+                    '<span class="badge bg-warning">Списано 1 посещение</span>' :
+                    '<span class="badge bg-info">Повторный вход (без списания)</span>'}
+                </p>
+            `;
+        } else {
+            resultIcon.innerHTML = '<i class="bi bi-x-circle text-danger"></i>';
+            resultMessage.textContent = 'Доступ запрещен';
+            // Исправляем обращение к reason - проверяем его наличие
+            const reason = data.reason || data.error || 'Неизвестная причина';
+            resultDetails.innerHTML = `<p><strong>Причина:</strong> ${reason}</p>`;
+        }
+
+    } catch (error) {
+        waitingDiv.classList.add('d-none');
+        resultDiv.classList.remove('d-none');
+        resultIcon.innerHTML = '<i class="bi bi-exclamation-triangle text-warning"></i>';
+        resultMessage.textContent = 'Ошибка соединения';
+        resultDetails.innerHTML = `<p>${error.message}</p>`;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "core/base.html" %}
+
+{% block title %}Удалить тип абонемента{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Подтверждение удаления</h5>
+            </div>
+            <div class="card-body">
+                {% if active_subscriptions_count > 0 %}
+                <div class="alert alert-danger">
+                    <h6><i class="bi bi-exclamation-triangle"></i> Невозможно удалить</h6>
+                    <p>Тип абонемента "{{ subscription_type.name }}" используется в {{ active_subscriptions_count }} активных абонементах.</p>
+                    <p>Сначала переведите все абонементы этого типа в неактивное состояние или измените их тип.</p>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <h6><i class="bi bi-exclamation-triangle"></i> Внимание!</h6>
+                    <p>Вы уверены, что хотите удалить тип абонемента "{{ subscription_type.name }}"?</p>
+                    <p>Это действие нельзя отменить.</p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'core:subscriptiontype_list' %}" class="btn btn-secondary me-md-2">Отмена</a>
+                        <button type="submit" class="btn btn-danger">Удалить</button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

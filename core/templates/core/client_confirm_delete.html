@@ -1,0 +1,30 @@
+{% extends "core/base.html" %}
+
+{% block title %}Удаление клиента{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Подтверждение удаления</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <h6><i class="bi bi-exclamation-triangle"></i> Внимание!</h6>
+                    <p>Вы уверены, что хотите удалить клиента <strong>{{ client }}</strong>?</p>
+                    <p>Это действие нельзя отменить. Все данные клиента, включая абонементы и историю проходов, будут удалены.</p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'core:client_detail' client.pk %}" class="btn btn-secondary me-md-2">Отмена</a>
+                        <button type="submit" class="btn btn-danger">Удалить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

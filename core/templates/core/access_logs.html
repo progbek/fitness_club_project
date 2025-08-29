@@ -1,0 +1,290 @@
+{% extends "core/base.html" %}
+{% load auth_extras %}
+
+{% block title %}Журнал проходов{% endblock %}
+
+{% block content %}
+<!-- Проверка прав доступа -->
+{% if not user.is_authenticated %}
+<div class="alert alert-danger">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="alert-heading"><i class="bi bi-shield-exclamation"></i> Доступ запрещен</h4>
+            <p class="mb-0">Для просмотра журнала проходов требуется авторизация.</p>
+        </div>
+        <a href="{% url 'admin:login' %}?next={% url 'core:access_logs' %}" class="btn btn-outline-danger">Войти</a>
+    </div>
+</div>
+{% else %}
+<!-- Основной контент -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1><i class="bi bi-journal-text"></i> Журнал проходов</h1>
+        <p class="text-muted">История попыток прохода через турникет</p>
+    </div>
+    <div>
+        <!-- Кнопки для кассиров -->
+        {% if user|is_cashier %}
+        <a href="{% url 'core:client_list' %}" class="btn btn-outline-primary me-2">
+            <i class="bi bi-people"></i> Клиенты
+        </a>
+        <a href="{% url 'core:client_create' %}" class="btn btn-success">
+            <i class="bi bi-person-plus"></i> Добавить клиента
+        </a>
+        {% else %}
+        <a href="{% url 'core:index' %}" class="btn btn-secondary">
+            <i class="bi bi-house"></i> На главную
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Фильтр по дате -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-calendar"></i> Выбор даты
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-md-6">
+                <label for="dateSelect" class="form-label">Выберите дату для просмотра:</label>
+                <select class="form-select" id="dateSelect" name="date" onchange="this.form.submit()">
+                    {% for date in date_options %}
+                    <option value="{{ date|date:'Y-m-d' }}" {% if date == selected_date %}selected{% endif %}>
+                        {{ date|date:'d.m.Y' }} ({{ date|date:'l' }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h5 class="card-title">Всего проходов</h5>
+                <h2 class="card-text">{{ today_total }}</h2>
+                <p class="card-text">за {{ selected_date|date:'d.m.Y' }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h5 class="card-title">Успешных</h5>
+                <h2 class="card-text">{{ today_successful }}</h2>
+                <p class="card-text">за {{ selected_date|date:'d.m.Y' }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <h5 class="card-title">Отказано</h5>
+                <h2 class="card-text">{{ today_denied }}</h2>
+                <p class="card-text">за {{ selected_date|date:'d.m.Y' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица с логами -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Журнал за {{ selected_date|date:'d.m.Y' }}</h5>
+            <span class="badge bg-secondary">Записей: {{ logs|length }}</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Дата и время</th>
+                        <th>Клиент</th>
+                        <th>Статус</th>
+                        <th>Причина</th>
+                        <th>Face ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>
+                            <span class="fw-bold">{{ log.timestamp|date:"d.m.Y" }}</span>
+                            <br>
+                            <small class="text-muted">{{ log.timestamp|date:"H:i:s" }}</small>
+                        </td>
+                        <td>
+                            {% if log.client %}
+                                <a href="{% url 'core:client_detail' log.client.pk %}" class="text-decoration-none">
+                                    {{ log.client.last_name }} {{ log.client.first_name }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">Неизвестный клиент</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.access_granted %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Разрешен
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-x-circle"></i> Запрещен
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.reason %}
+                                <span class="text-danger">{{ log.reason }}</span>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.client and log.client.photo %}
+                                <a href="#" class="face-id-link text-decoration-none" data-bs-toggle="modal" data-bs-target="#photoModal"
+                                   data-photo-url="{{ log.client.photo.url }}" data-client-name="{{ log.client.last_name }} {{ log.client.first_name }}">
+                                    <code>{{ log.client.face_id }}</code>
+                                    <i class="bi bi-image ms-1 text-primary" style="font-size: 0.8em;"></i>
+                                </a>
+                            {% else %}
+                                <code>{{ log.client.face_id|default:"Не указан" }}</code>
+                                {% if log.client %}
+                                    <i class="bi bi-x-circle ms-1 text-muted" style="font-size: 0.8em;" title="Фото отсутствует"></i>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Записи не найдены</p>
+                                <small>Нет записей за выбранную дату</small>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer text-muted">
+        <small>Показано {{ logs|length }} записей за {{ selected_date|date:'d.m.Y' }}</small>
+    </div>
+</div>
+
+<!-- Подсказки -->
+<div class="alert alert-info mt-4">
+    <h6><i class="bi bi-info-circle"></i> Информация</h6>
+    <ul class="mb-0">
+        <li>В журнале отображаются записи за выбранную дату</li>
+        <li>Используйте фильтр для просмотра истории за разные дни</li>
+        <li>Нажмите на <i class="bi bi-image text-primary"></i> для просмотра фото клиента</li>
+        {% if user|is_cashier %}
+        <li>Для добавления новых клиентов используйте кнопку "Добавить клиента"</li>
+        {% endif %}
+    </ul>
+</div>
+
+<!-- Модальное окно для отображения фото -->
+<div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="photoModalLabel">Фотография клиента</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="clientPhoto" src="" class="img-fluid rounded" alt="Фото клиента" style="max-height: 400px;">
+                <h6 id="clientName" class="mt-3"></h6>
+                <p class="text-muted" id="clientFaceId"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+    cursor: pointer;
+}
+.badge {
+    font-size: 0.85em;
+}
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+.face-id-link:hover {
+    cursor: pointer;
+    text-decoration: underline !important;
+}
+#photoModal .modal-dialog {
+    max-width: 500px;
+}
+#clientPhoto {
+    max-height: 60vh;
+    object-fit: contain;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработчик для ссылок с Face ID
+    const faceIdLinks = document.querySelectorAll('.face-id-link');
+    const clientPhoto = document.getElementById('clientPhoto');
+    const clientName = document.getElementById('clientName');
+    const clientFaceId = document.getElementById('clientFaceId');
+    const photoModal = new bootstrap.Modal(document.getElementById('photoModal'));
+
+    faceIdLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            const photoUrl = this.getAttribute('data-photo-url');
+            const name = this.getAttribute('data-client-name');
+            const faceId = this.querySelector('code').textContent.trim();
+
+            // Устанавливаем данные в модальное окно
+            clientPhoto.src = photoUrl;
+            clientName.textContent = name;
+            clientFaceId.textContent = 'Face ID: ' + faceId;
+
+            // Показываем модальное окно
+            photoModal.show();
+        });
+    });
+
+    // Обработчик ошибок загрузки фото
+    clientPhoto.addEventListener('error', function() {
+        this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkeT0iLjM1ZW0iIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2YzcyN2EiPkZvdG8gbm90IGZvdW5kPC90ZXh0Pjwvc3ZnPg==';
+        clientName.textContent += ' (Фото не найдено)';
+    });
+
+    // Закрытие модального окна по клику на фон
+    document.getElementById('photoModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            photoModal.hide();
+        }
+    });
+});
+</script>
+{% endblock %}

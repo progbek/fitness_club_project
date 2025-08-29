@@ -1,0 +1,118 @@
+{% extends "core/base.html" %}
+{% load auth_extras %}
+
+{% block title %}Информация о клиенте: {{ client }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ client.last_name }} {{ client.first_name }}</h1>
+    <div>
+        {% if user|is_manager or user|is_administrator %}
+        <a href="{% url 'core:client_update' client.pk %}" class="btn btn-outline-primary">
+            <i class="bi bi-pencil"></i> Редактировать
+        </a>
+        <a href="{% url 'core:client_delete' client.pk %}" class="btn btn-outline-danger">
+            <i class="bi bi-trash"></i> Удалить
+        </a>
+        {% endif %}
+        <a href="{% url 'core:client_list' %}" class="btn btn-secondary">← Назад</a>
+    </div>
+</div>
+<div class="d-flex justify-content-end align-items-center mb-4">
+    <a href="{% url 'core:client_list' %}" class="btn btn-secondary">← Назад к списку</a>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Информация о клиенте</h5>
+            </div>
+            <div class="card-body">
+                {% if client.photo %}
+                    <img src="{{ client.photo.url }}" alt="Фото клиента" class="img-fluid rounded mb-3">
+                {% endif %}
+                <p><strong>Телефон:</strong> {{ client.phone|default:"не указан" }}</p>
+                <p><strong>Email:</strong> {{ client.email|default:"не указан" }}</p>
+                <p><strong>Face ID:</strong> <code>{{ client.face_id }}</code></p>
+                <p><strong>Дата регистрации:</strong> {{ client.date_created|date:"d.m.Y" }}</p>
+                {% if client.notes %}
+                    <p><strong>Заметки:</strong><br>{{ client.notes }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="card-title mb-0">Абонементы</h5>
+            {% if user|is_cashier or user|is_manager or user|is_administrator %}
+            <a href="{% url 'core:subscription_create' client.pk %}" class="btn btn-success btn-sm">
+                <i class="bi bi-plus-circle"></i> Добавить абонемент
+            </a>
+            {% endif %}
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Абонементы</h5>
+            </div>
+            <div class="card-body">
+                {% if active_subscription %}
+                    <div class="alert alert-success">
+                        <h6>Активный абонемент</h6>
+                        <p><strong>Тип:</strong> {{ active_subscription.type }}</p>
+                        <p><strong>Дата покупки:</strong> {{ active_subscription.purchase_date|date:"d.m.Y" }}</p>
+                        <p><strong>Оплачено посещений:</strong> {{ active_subscription.paid_visits }}</p>
+                        <p><strong>Использовано посещений:</strong> {{ active_subscription.used_visits }}</p>
+                        <p><strong>Осталось посещений:</strong>
+                            <span class="badge bg-{% if active_subscription.remaining_visits > 5 %}success{% elif active_subscription.remaining_visits > 0 %}warning{% else %}danger{% endif %}">
+                                {{ active_subscription.remaining_visits }}
+                            </span>
+                        </p>
+                            {% if active_subscription.last_visit %}
+                            <p><strong>Последнее посещение:</strong> {{ active_subscription.last_visit|date:"d.m.Y H:i" }}</p>
+                            {% endif %}
+                    </div>
+                {% endif %}
+
+                <h6>История абонементов</h6>
+                {% if subscriptions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Тип</th>
+                                    <th>Начало</th>
+                                    <th>Окончание</th>
+                                    <th>Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for subscription in subscriptions %}
+                                <tr class="{% if subscription.is_valid %}table-success{% elif not subscription.is_active %}table-secondary{% endif %}">
+                                    <td>{{ subscription.type }}</td>
+                                    <td>{{ subscription.purchase_date|date:"d.m.Y" }}</td>
+                                    <td>{{ subscription.end_date|date:"d.m.Y" }}</td>
+                                    <td>
+                                        {% if subscription.is_valid %}
+                                            <span class="badge bg-success">Активен</span>
+                                        {% elif subscription.is_active %}
+                                            <span class="badge bg-warning">Истек</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Неактивен</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>У клиента еще не было абонементов.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

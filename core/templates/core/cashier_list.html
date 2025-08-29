@@ -1,0 +1,50 @@
+{% extends "core/base.html" %}
+{% load auth_extras %}
+
+{% block title %}Управление кассирами{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Управление кассирами</h1>
+    <a href="{% url 'core:cashier_create' %}" class="btn btn-success">
+        <i class="bi bi-person-plus"></i> Добавить кассира
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Имя пользователя</th>
+                        <th>Дата регистрации</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cashier in cashiers %}
+                    <tr>
+                        <td>{{ cashier.username }}</td>
+                        <td>{{ cashier.date_joined|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            <form method="post" action="{% url 'core:cashier_delete' cashier.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('Удалить кассира {{ cashier.username }}?')">
+                                    <i class="bi bi-trash"></i> Удалить
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center">Кассиры не найдены</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

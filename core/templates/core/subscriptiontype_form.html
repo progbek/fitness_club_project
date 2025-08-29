@@ -1,0 +1,86 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ title }}</h1>
+    <a href="{% url 'core:subscriptiontype_list' %}" class="btn btn-secondary">← Назад к списку</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }}</label>
+                        {{ form.name }}
+                        {% for error in form.name.errors %}
+                        <div class="alert alert-danger mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3 form-check form-switch">
+                        {{ form.is_unlimited }}
+                        <label class="form-check-label" for="{{ form.is_unlimited.id_for_label }}">
+                            {{ form.is_unlimited.label }}
+                        </label>
+                        <div class="form-text">Бессрочный абонемент не имеет ограничения по времени</div>
+                        {% for error in form.is_unlimited.errors %}
+                        <div class="alert alert-danger mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3" id="duration-field">
+                        <label for="{{ form.duration_days.id_for_label }}" class="form-label">{{ form.duration_days.label }}</label>
+                        {{ form.duration_days }}
+                        <div class="form-text">Количество дней действия абонемента</div>
+                        {% for error in form.duration_days.errors %}
+                        <div class="alert alert-danger mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.price.id_for_label }}" class="form-label">{{ form.price.label }}</label>
+                        {{ form.price }}
+                        <div class="form-text">Стоимость абонемента (0 для бесплатных)</div>
+                        {% for error in form.price.errors %}
+                        <div class="alert alert-danger mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'core:subscriptiontype_list' %}" class="btn btn-secondary me-md-2">Отмена</a>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const unlimitedCheckbox = document.getElementById('{{ form.is_unlimited.id_for_label }}');
+    const durationField = document.getElementById('duration-field');
+    
+    function toggleDurationField() {
+        if (unlimitedCheckbox.checked) {
+            durationField.style.display = 'none';
+        } else {
+            durationField.style.display = 'block';
+        }
+    }
+    
+    if (unlimitedCheckbox && durationField) {
+        unlimitedCheckbox.addEventListener('change', toggleDurationField);
+        toggleDurationField(); // Initial state
+    }
+});
+</script>
+{% endblock %}

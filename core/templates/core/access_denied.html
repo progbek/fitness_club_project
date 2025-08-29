@@ -1,0 +1,21 @@
+{% extends "core/base.html" %}
+
+{% block title %}Доступ запрещен{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="text-danger">🚫</h1>
+                    <h3>Доступ запрещен</h3>
+                    <p>У вас недостаточно прав для просмотра этой страницы.</p>
+                    <p>Обратитесь к руководителю или администратору системы.</p>
+                    <a href="{% url 'core:index' %}" class="btn btn-primary">На главную</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

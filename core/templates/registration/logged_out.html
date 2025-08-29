@@ -1,0 +1,72 @@
+{% extends "core/base.html" %}
+
+{% block title %}Выход из системы - Фитнес-клуб{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-success text-white text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="bi bi-check-circle"></i> Выход выполнен
+                    </h3>
+                </div>
+
+                <div class="card-body p-5 text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-box-arrow-right" style="font-size: 3rem; color: #28a745;"></i>
+                    </div>
+
+                    <h4 class="text-success mb-3">Вы успешно вышли из системы</h4>
+                    <p class="text-muted mb-4">Спасибо за использование системы фитнес-клуба</p>
+
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'core:login' %}" class="btn btn-primary btn-lg py-3">
+                            <i class="bi bi-box-arrow-in-right"></i> Войти снова
+                        </a>
+                        <a href="{% url 'core:index' %}" class="btn btn-outline-secondary btn-lg py-3">
+                            <i class="bi bi-house"></i> На главную страницу
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-footer text-center py-3">
+                    <small class="text-muted">Фитнес-клуб &copy; 2025</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.min-vh-100 {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+.card-header {
+    border-bottom: none;
+}
+.btn-primary {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    border: none;
+    transition: all 0.3s ease;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+.btn-outline-secondary {
+    transition: all 0.3s ease;
+}
+.btn-outline-secondary:hover {
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "core/base.html" %}
+
+{% block title %}Панель руководителя{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Панель руководителя</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body text-center">
+                <h5 class="card-title">Посещения сегодня</h5>
+                <p class="card-text display-4">0</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body text-center">
+                <h5 class="card-title">Успешные проходы</h5>
+                <p class="card-text display-4">0</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body text-center">
+                <h5 class="card-title">Активные клиенты</h5>
+                <p class="card-text display-4">{{ active_clients_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Быстрый доступ</h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'core:access_logs' %}" class="btn btn-primary me-2">Журнал проходов</a>
+                <a href="{% url 'core:client_list' %}" class="btn btn-secondary me-2">Все клиенты</a>
+                <a href="/admin/" class="btn btn-outline-dark">Админ-панель</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

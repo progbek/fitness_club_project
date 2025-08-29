@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фитнес-клуб - {% block title %}{% endblock %}</title>
+    <!-- Подключаем Bootstrap 5 для красивого и простого стиля -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    {% load auth_extras %}  <!-- ДОБАВЬТЕ ЭТУ СТРОЧКУ -->
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'core:index' %}">Фитнес-клуб</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'core:index' %}">Главная</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'core:client_list' %}">Клиенты</a>
+                    </li>
+
+                    <!-- Типы абонементов ТОЛЬКО для руководителей и администраторов -->
+                    {% if user.is_authenticated %}
+                        {% if user|is_manager or user|is_administrator %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'core:subscriptiontype_list' %}">Типы абонементов</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'core:cashier_list' %}">Управление кассирами</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'core:report_finance' %}">Финансовый отчет</a>
+                        </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <span class="nav-link btn btn-link">Пользователь: {{ user.username }}</span>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'core:logout' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link btn btn-link"
+                                style="border: none; background: none; cursor: pointer; color: rgba(255, 255, 255, 0.55); padding: 0.5rem 0;">
+                                    Выйти
+                                </button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'core:login' %}">Войти</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Блок для вывода сообщений (об успехе, ошибках) -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Место, куда будут подставляться содержимое других шаблонов -->
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white mt-5 py-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">Фитнес-клуб &copy; 2025. Все права защищены.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small>Система управления доступом</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Дополнительные JavaScript блоки -->
+    {% block extra_js %}
+    {% endblock %}
+
+    <!-- Стили для улучшения внешнего вида -->
+    <style>
+        .btn-link {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.55);
+            padding: 0.5rem 0;
+        }
+        .btn-link:hover {
+            color: rgba(255, 255, 255, 0.75);
+        }
+        footer {
+            margin-top: auto;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .container {
+            flex: 1;
+        }
+    </style>
+</body>
+</html>

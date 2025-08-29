@@ -1,0 +1,116 @@
+{% extends "core/base.html" %}
+{% load auth_extras %}
+
+{% block title %}Отчеты - Дашборд{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-graph-up"></i> Отчеты и аналитика</h1>
+    <div>
+        <a href="{% url 'core:report_finance' %}" class="btn btn-outline-primary">
+            <i class="bi bi-currency-dollar"></i> Финансы
+        </a>
+        <a href="{% url 'core:report_attendance' %}" class="btn btn-outline-info">
+            <i class="bi bi-people"></i> Посещаемость
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Клиенты -->
+    <div class="col-md-4 mb-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Клиенты</h5>
+                <h2 class="display-4">{{ total_clients }}</h2>
+                <p class="card-text">Всего клиентов</p>
+                <small>+{{ new_clients }} новых за 30 дней</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Посещения -->
+    <div class="col-md-4 mb-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Посещения</h5>
+                <h2 class="display-4">{{ total_visits }}</h2>
+                <p class="card-text">Всего проходов</p>
+                <small>{{ successful_visits }} успешных / {{ denied_visits }} отказов</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Абонементы -->
+    <div class="col-md-4 mb-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Абонементы</h5>
+                <h2 class="display-4">{{ active_subscriptions }}</h2>
+                <p class="card-text">Активных абонементов</p>
+                <small>{{ expired_subscriptions }}需要продления</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- График посещений за неделю -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title">Посещения за последние 7 дней</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for day in visits_by_day %}
+            <div class="col">
+                <div class="text-center">
+                    <div class="fw-bold">{{ day.visits }}</div>
+                    <small class="text-muted">{{ day.date|date:"d.m" }}</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Быстрые действия -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Быстрые отчеты</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-currency-dollar" style="font-size: 2rem;"></i>
+                        <h6>Финансовый отчет</h6>
+                        <p class="text-muted">Доходы по типам абонементов</p>
+                        <a href="{% url 'core:report_finance' %}" class="btn btn-primary btn-sm">Открыть</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-people" style="font-size: 2rem;"></i>
+                        <h6>Посещаемость</h6>
+                        <p class="text-muted">Анализ активности клиентов</p>
+                        <a href="{% url 'core:report_attendance' %}" class="btn btn-primary btn-sm">Открыть</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-card-list" style="font-size: 2rem;"></i>
+                        <h6>Журнал проходов</h6>
+                        <p class="text-muted">Детальная история посещений</p>
+                        <a href="{% url 'core:access_logs' %}" class="btn btn-primary btn-sm">Открыть</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

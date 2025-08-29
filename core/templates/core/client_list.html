@@ -1,0 +1,159 @@
+{% extends "core/base.html" %}
+{% load auth_extras %}
+
+{% block title %}Список клиентов{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Список клиентов</h1>
+    <a href="{% url 'core:client_create' %}" class="btn btn-success">
+        <i class="bi bi-person-plus"></i> Добавить клиента
+    </a>
+</div>
+
+<!-- Панель поиска и сортировки -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <!-- Поиск -->
+            <div class="col-md-6">
+                <form method="get" class="d-flex">
+                    <input type="text" name="search" class="form-control me-2"
+                        placeholder="Поиск по имени, фамилии, телефону или Face ID"
+                        value="{{ search_query }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Найти
+                    </button>
+                    {% if search_query %}
+                    <a href="{% url 'core:client_list' %}" class="btn btn-secondary ms-2">
+                        <i class="bi bi-x-circle"></i> Сброс
+                    </a>
+                    {% endif %}
+                </form>
+            </div>
+
+            <!-- Сортировка -->
+            <div class="col-md-6">
+                <div class="d-flex align-items-center">
+                    <span class="me-2">Сортировка:</span>
+                    <div class="btn-group">
+                        <a href="?sort=name{% if search_query %}&search={{ search_query }}{% endif %}"
+                           class="btn btn-outline-primary {% if current_sort == 'name' %}active{% endif %}">
+                            <i class="bi bi-sort-alpha-down"></i> По алфавиту
+                        </a>
+                        <a href="?sort=date{% if search_query %}&search={{ search_query }}{% endif %}"
+                           class="btn btn-outline-primary {% if current_sort == 'date' %}active{% endif %}">
+                            <i class="bi bi-calendar"></i> По дате
+                        </a>
+                        <a href="?sort=subscription{% if search_query %}&search={{ search_query }}{% endif %}"
+                           class="btn btn-outline-primary {% if current_sort == 'subscription' %}active{% endif %}">
+                            <i class="bi bi-credit-card"></i> По абонементу
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Информация о результатах -->
+{% if search_query %}
+<div class="alert alert-info mb-3">
+    <i class="bi bi-info-circle"></i> Найдено клиентов: {{ clients.count }}
+    {% if search_query %}по запросу "{{ search_query }}"{% endif %}
+</div>
+{% endif %}
+
+<!-- Таблица клиентов -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ФИО</th>
+                        <th>Телефон</th>
+                        <th>Face ID</th>
+                        <th>Абонемент</th>
+                        <th>Дата регистрации</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients %}
+                    <tr>
+                        <td>
+                            <strong>{{ client.last_name }} {{ client.first_name }}</strong>
+                        </td>
+                        <td>
+                            {% if client.phone %}
+                                {{ client.phone }}
+                            {% else %}
+                                <span class="text-muted">не указан</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <code>{{ client.face_id }}</code>
+                        </td>
+                        <td>
+                            {% with active_sub=client.subscriptions.filter.is_valid.0 %}
+                                {% if active_sub %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> Активен
+                                    </span>
+                                    <br>
+                                    <small>{{ active_sub.type }} (осталось: {{ active_sub.remaining_visits }} пос.)</small>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-x-circle"></i> Нет
+                                    </span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            {{ client.date_created|date:"d.m.Y" }}
+                            <br>
+                            <small class="text-muted">{{ client.date_created|date:"H:i" }}</small>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'core:client_detail' client.pk %}" class="btn btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Просмотр
+                                </a>
+                                <a href="{% url 'core:subscription_create' client.pk %}" class="btn btn-outline-success">
+                                    <i class="bi bi-credit-card"></i> Абонемент
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="bi bi-people" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Клиенты не найдены</p>
+                                {% if search_query %}
+                                    <small>Попробуйте изменить поисковый запрос</small>
+                                {% else %}
+                                    <a href="{% url 'core:client_create' %}" class="btn btn-primary btn-sm mt-2">
+                                        Добавить первого клиента
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Пагинация (можно добавить позже) -->
+{% if clients.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        <!-- ... код пагинации ... -->
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

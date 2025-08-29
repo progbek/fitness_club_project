@@ -1,0 +1,51 @@
+{% extends "core/base.html" %}
+{% load auth_extras %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+<h1>Добро пожаловать в систему фитнес-клуба</h1>
+
+<!-- Контент для руководителей -->
+{% if user|is_manager or user|is_administrator %}
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body text-center">
+                <h5 class="card-title">Посещения сегодня</h5>
+                <p class="card-text display-4">{{ today_visits|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body text-center">
+                <h5 class="card-title">Успешные проходы</h5>
+                <p class="card-text display-4">{{ today_access_granted|default:0 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Быстрые действия</h5>
+                <a href="{% url 'core:access_logs' %}" class="btn btn-outline-primary btn-sm mb-2">Журнал проходов</a>
+                <a href="{% url 'core:client_list' %}" class="btn btn-outline-secondary btn-sm mb-2">Все клиенты</a>
+                {% if user|is_manager or user|is_administrator %}
+                <a href="{% url 'core:subscriptiontype_list' %}" class="btn btn-outline-info btn-sm mb-2">Типы абонементов</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Контент для неавторизованных пользователей -->
+{% if not user.is_authenticated %}
+<div class="alert alert-info mt-4">
+    <h4>Для работы в системе требуется авторизация</h4>
+    <p>Пожалуйста, войдите в систему используя свои учетные данные.</p>
+    <a href="{% url 'core:login' %}" class="btn btn-primary">Войти в систему</a>
+</div>
+{% endif %}
+{% endblock %}

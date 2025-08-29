@@ -1,0 +1,122 @@
+{% extends "core/base.html" %}
+
+{% block title %}Вход в систему - Фитнес-клуб{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="bi bi-door-open"></i> Фитнес-клуб
+                    </h3>
+                    <p class="mb-0 mt-2">Система управления доступом</p>
+                </div>
+
+                <div class="card-body p-5">
+                    {% if form.errors %}
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        <i class="bi bi-exclamation-triangle"></i> Неправильное имя пользователя или пароль.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
+
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label for="username" class="form-label fw-bold">
+                                <i class="bi bi-person"></i> Имя пользователя
+                            </label>
+                            <input type="text" name="username" class="form-control form-control-lg"
+                                   placeholder="Введите ваш логин" required autofocus>
+                            <div class="invalid-feedback">
+                                Пожалуйста, введите имя пользователя.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-bold">
+                                <i class="bi bi-lock"></i> Пароль
+                            </label>
+                            <input type="password" name="password" class="form-control form-control-lg"
+                                   placeholder="Введите ваш пароль" required>
+                            <div class="invalid-feedback">
+                                Пожалуйста, введите пароль.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 py-3 mb-3">
+                            <i class="bi bi-box-arrow-in-right"></i> Войти в систему
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> Для доступа к системе необходимы учетные данные
+                        </small>
+                    </div>
+                </div>
+
+                <div class="card-footer text-center py-3">
+                    <small class="text-muted">Фитнес-клуб &copy; 2025</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Валидация формы
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('.needs-validation');
+
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.min-vh-100 {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+.card-header {
+    border-bottom: none;
+}
+.btn-primary {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    border: none;
+    transition: all 0.3s ease;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+.form-control {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+</style>
+{% endblock %}
